@@ -1,0 +1,1438 @@
+<!DOCTYPE html>
+<html lang="de" class="h-full bg-slate-900 text-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vokabel Lerner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(51, 65, 85, 0.8);
+            border-radius: 4px;
+        }
+        .shake {
+            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+        }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+        .pulse-success {
+            animation: pulseGreen 0.4s ease-in-out;
+        }
+        @keyframes pulseGreen {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col font-sans antialiased selection:bg-brand-500 selection:text-white">
+
+    <header class="bg-slate-800/80 backdrop-blur border-b border-slate-700/60 sticky top-0 z-40">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo & Brand Title -->
+                <div class="flex items-center space-x-3 cursor-pointer" onclick="app.navigateTo('dashboard')">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-brand-500/20">
+                        <i class="fa-solid fa-graduation-cap text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <span class="font-bold text-lg tracking-tight text-white block leading-tight">Vokabel Lerner</span>
+                        <span class="text-xs text-slate-400 font-medium">Dein interaktiver Vokabeltrainer – von MaxGamer</span>
+                    </div>
+                </div>
+
+                <!-- Nav Controls -->
+                <nav class="flex items-center gap-2 sm:gap-3">
+                    <button id="nav-tutorial-btn" onclick="app.openTutorialModal()" class="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition text-amber-300 bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20">
+                        <i class="fa-solid fa-circle-question"></i>
+                        <span class="hidden sm:inline">Anleitung</span>
+                    </button>
+                    <button id="nav-dash-btn" onclick="app.navigateTo('dashboard')" class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition text-white bg-slate-700/60 hover:bg-slate-700">
+                        <i class="fa-solid fa-house text-brand-500"></i>
+                        <span class="hidden sm:inline">Übersicht</span>
+                    </button>
+                    <button id="nav-editor-btn" onclick="app.navigateTo('editor')" class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition text-slate-300 hover:text-white hover:bg-slate-800">
+                        <i class="fa-solid fa-book-bookmark text-emerald-400"></i>
+                        <span class="hidden sm:inline">Verwaltung</span>
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col justify-start">
+        
+        <section id="view-dashboard" class="space-y-6">
+            <!-- Header Stats / Welcome -->
+            <div class="bg-gradient-to-r from-slate-800 via-slate-800/90 to-indigo-950/40 border border-slate-700/50 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+                <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h1 class="text-2xl sm:text-3xl font-bold text-white mb-2">Vokabel Lerner 🚀</h1>
+                        <p class="text-slate-400 text-sm sm:text-base max-w-xl">Erstelle Fächer und Lektionen oder nutze die vordefinierte Englisch-Testlektion.</p>
+                    </div>
+                    <!-- Quick Stats -->
+                    <div class="flex items-center gap-3 sm:gap-4 bg-slate-900/60 backdrop-blur p-3 rounded-xl border border-slate-700/40">
+                        <div class="text-center px-2">
+                            <span class="block text-2xl font-bold text-emerald-400" id="stat-total-words">0</span>
+                            <span class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Vokabeln</span>
+                        </div>
+                        <div class="w-px h-8 bg-slate-700"></div>
+                        <div class="text-center px-2">
+                            <span class="block text-2xl font-bold text-rose-400" id="stat-error-words">0</span>
+                            <span class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Im Fehler-Pool</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Subject Selection Grid -->
+            <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-layer-group text-brand-500"></i> Fächer & Lektionen
+                    </h2>
+                    <button onclick="app.openNewSubjectModal()" class="text-xs sm:text-sm bg-brand-600/20 text-brand-400 border border-brand-500/30 hover:bg-brand-600/30 px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 font-medium">
+                        <i class="fa-solid fa-plus"></i> Neues Fach
+                    </button>
+                </div>
+
+                <!-- Subjects Container -->
+                <div id="subjects-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                    <!-- Dynamic subject cards injected here -->
+                </div>
+            </div>
+        </section>
+
+        <section id="view-config" class="hidden max-w-xl mx-auto w-full bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-2xl space-y-6">
+            <div class="border-b border-slate-700 pb-4 flex items-center justify-between">
+                <div>
+                    <span id="config-subject-tag" class="text-xs font-semibold px-2.5 py-1 rounded-md bg-brand-500/20 text-brand-400 uppercase tracking-wider">Fach</span>
+                    <h2 id="config-unit-title" class="text-2xl font-bold text-white mt-1">Lektion</h2>
+                </div>
+                <button onclick="app.navigateTo('dashboard')" class="text-slate-400 hover:text-white p-2 rounded-lg hover:bg-slate-700/50">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4">
+                <label class="block text-sm font-medium text-slate-300 mb-2">Wähle deinen Abfragemodus:</label>
+                
+                <!-- Mode 1: Normal -->
+                <label class="block relative border border-slate-700 bg-slate-900/50 hover:border-brand-500 rounded-xl p-4 cursor-pointer transition has-[:checked]:border-brand-500 has-[:checked]:bg-brand-950/20">
+                    <div class="flex items-start gap-3">
+                        <input type="radio" name="practice-mode" value="normal" checked class="mt-1 text-brand-500 focus:ring-brand-500 bg-slate-800 border-slate-600">
+                        <div>
+                            <div class="font-semibold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-rotate text-blue-400"></i> Standard-Modus
+                            </div>
+                            <p class="text-xs text-slate-400 mt-1">Alle Vokabeln dieser Lektion werden gleichmäßig abgefragt.</p>
+                        </div>
+                    </div>
+                </label>
+
+                <!-- Mode 2: Errors Only -->
+                <label id="mode-option-errors" class="block relative border border-slate-700 bg-slate-900/50 hover:border-brand-500 rounded-xl p-4 cursor-pointer transition has-[:checked]:border-brand-500 has-[:checked]:bg-brand-950/20">
+                    <div class="flex items-start gap-3">
+                        <input type="radio" name="practice-mode" value="errors_only" class="mt-1 text-brand-500 focus:ring-brand-500 bg-slate-800 border-slate-600">
+                        <div>
+                            <div class="font-semibold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-triangle-exclamation text-rose-400"></i> Extra-Fehler-Modus
+                            </div>
+                            <p class="text-xs text-slate-400 mt-1">Gezielte Wiederholung: Nur Vokabeln, die aktuell im Fehler-Pool liegen.</p>
+                        </div>
+                    </div>
+                </label>
+
+                <!-- Mode 3: Weighted Focus -->
+                <label class="block relative border border-slate-700 bg-slate-900/50 hover:border-brand-500 rounded-xl p-4 cursor-pointer transition has-[:checked]:border-brand-500 has-[:checked]:bg-brand-950/20">
+                    <div class="flex items-start gap-3">
+                        <input type="radio" name="practice-mode" value="weighted" class="mt-1 text-brand-500 focus:ring-brand-500 bg-slate-800 border-slate-600">
+                        <div>
+                            <div class="font-semibold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-bullseye text-amber-400"></i> Fokus-Modus (Höhere Fehler-Chance)
+                            </div>
+                            <p class="text-xs text-slate-400 mt-1">Alle Vokabeln werden abgefragt, fehlerhafte Vokabeln erscheinen jedoch 3-mal häufiger.</p>
+                        </div>
+                    </div>
+                </label>
+            </div>
+
+            <!-- Settings Options -->
+            <div class="pt-2 border-t border-slate-700 space-y-3">
+                <div class="flex items-center justify-between">
+                    <span class="text-sm font-medium text-slate-300">Groß-/Kleinschreibung beachten</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="setting-case-sensitive" class="sr-only peer">
+                        <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-600"></div>
+                    </label>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-sm font-medium text-slate-300">Abfragerichtung umkehren</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="setting-reverse-dir" class="sr-only peer">
+                        <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-600"></div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Start Action Button -->
+            <button onclick="app.startPracticeSession()" class="w-full bg-brand-600 hover:bg-brand-500 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-brand-600/30 transition flex items-center justify-center gap-2 text-base">
+                <i class="fa-solid fa-play"></i> Abfrage jetzt starten
+            </button>
+        </section>
+
+        <section id="view-practice" class="hidden max-w-2xl mx-auto w-full space-y-6">
+            <!-- Top Progress & Stats Bar -->
+            <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-md flex items-center justify-between gap-4">
+                <button onclick="app.quitPracticeSession()" class="text-xs text-slate-400 hover:text-white flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-slate-700 transition">
+                    <i class="fa-solid fa-arrow-left"></i> Beenden
+                </button>
+
+                <!-- Progress Bar Container -->
+                <div class="flex-1 max-w-xs">
+                    <div class="flex justify-between text-xs font-semibold text-slate-400 mb-1">
+                        <span>Fortschritt</span>
+                        <span id="practice-progress-text">0/0</span>
+                    </div>
+                    <div class="w-full bg-slate-700 rounded-full h-2.5 overflow-hidden">
+                        <div id="practice-progress-bar" class="bg-brand-500 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Live Score Badges -->
+                <div class="flex items-center gap-2 text-xs font-bold">
+                    <span class="px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+                        <i class="fa-solid fa-check"></i> <span id="score-correct">0</span>
+                    </span>
+                    <span class="px-2.5 py-1 rounded-md bg-rose-500/10 text-rose-400 border border-rose-500/20 flex items-center gap-1">
+                        <i class="fa-solid fa-xmark"></i> <span id="score-wrong">0</span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Flashcard / Query Card -->
+            <div id="card-container" class="bg-slate-800 border border-slate-700/80 rounded-2xl p-6 sm:p-8 shadow-2xl text-center relative overflow-hidden transition-all duration-300">
+                <!-- Mode Badge -->
+                <div class="mb-4">
+                    <span id="practice-mode-badge" class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-slate-700/70 text-slate-300 border border-slate-600/50">
+                        <i class="fa-solid fa-bolt text-amber-400"></i> Standard
+                    </span>
+                </div>
+
+                <!-- Question Word -->
+                <div class="min-h-[90px] flex flex-col items-center justify-center">
+                    <span class="text-xs uppercase tracking-wider text-slate-400 font-medium mb-1" id="practice-lang-prompt">Gesuchte Übersetzung:</span>
+                    <h3 id="practice-prompt-word" class="text-3xl sm:text-4xl font-extrabold text-white tracking-wide">...</h3>
+                </div>
+
+                <!-- Hint / Note Toggle Button -->
+                <div class="my-3">
+                    <button type="button" id="btn-toggle-note" onclick="app.togglePracticeNote()" class="hidden mx-auto text-xs font-medium text-amber-400 hover:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 px-3 py-1.5 rounded-lg transition items-center gap-1.5">
+                        <i class="fa-solid fa-lightbulb"></i> <span id="btn-toggle-note-text">💡 Tipp / Notiz anzeigen</span>
+                    </button>
+                    <!-- Note Display Box -->
+                    <div id="practice-note-box" class="hidden mt-3 max-w-md mx-auto p-3 rounded-xl bg-slate-900/80 border border-amber-500/30 text-amber-200 text-xs text-left flex items-start gap-2.5">
+                        <i class="fa-solid fa-lightbulb text-amber-400 text-base mt-0.5 shrink-0"></i>
+                        <div class="flex-1">
+                            <span class="font-bold text-amber-400 block mb-0.5">Notiz / Hinweistext:</span>
+                            <p id="practice-note-content" class="leading-relaxed"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Input & Action Area -->
+                <form id="practice-form" onsubmit="app.handleAnswerSubmit(event)" class="mt-4 space-y-4 max-w-md mx-auto">
+                    <div class="relative">
+                        <input type="text" id="practice-input" autocomplete="off" placeholder="Deine Antwort eingeben..." 
+                            class="w-full bg-slate-900 border-2 border-slate-700 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 rounded-xl px-4 py-3.5 text-lg text-white placeholder-slate-500 text-center font-medium transition shadow-inner outline-none">
+                    </div>
+
+                    <!-- Feedback Box -->
+                    <div id="practice-feedback" class="hidden rounded-xl p-4 text-sm font-medium transition-all text-left space-y-2">
+                        <div class="flex items-start gap-3">
+                            <i id="feedback-icon" class="fa-solid text-xl mt-0.5 shrink-0"></i>
+                            <div class="space-y-1 flex-1">
+                                <div id="feedback-title" class="font-bold text-base"></div>
+                                <div id="feedback-detail" class="text-slate-300"></div>
+                            </div>
+                        </div>
+                        <!-- Accepted Meanings List -->
+                        <div id="feedback-meanings-box" class="pt-2 border-t border-slate-700/60 hidden">
+                            <span class="text-xs text-slate-400 font-semibold block mb-1">Alle akzeptierten Bedeutungen:</span>
+                            <div id="feedback-meanings-tags" class="flex flex-wrap gap-1.5"></div>
+                        </div>
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="flex gap-3">
+                        <button type="button" id="btn-reveal" onclick="app.revealAnswer()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold py-3 px-4 rounded-xl transition text-sm flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-eye"></i> Auflösen
+                        </button>
+                        <button type="submit" id="btn-submit" class="flex-1 bg-brand-600 hover:bg-brand-500 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-brand-600/30 transition text-sm flex items-center justify-center gap-2">
+                            <span>Prüfen</span> <i class="fa-solid fa-arrow-right text-xs"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <section id="view-results" class="hidden max-w-lg mx-auto w-full bg-slate-800 border border-slate-700 rounded-2xl p-6 sm:p-8 shadow-2xl text-center space-y-6">
+            <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/20">
+                <i class="fa-solid fa-trophy text-white text-3xl"></i>
+            </div>
+
+            <div>
+                <h2 class="text-2xl font-bold text-white">Abfrage abgeschlossen!</h2>
+                <p class="text-slate-400 text-sm mt-1">Gute Arbeit. Hier ist deine Auswertung:</p>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-3 gap-3 bg-slate-900/60 p-4 rounded-xl border border-slate-700/50">
+                <div>
+                    <span class="block text-2xl font-extrabold text-white" id="res-total">0</span>
+                    <span class="text-[10px] uppercase font-bold text-slate-400">Gesamt</span>
+                </div>
+                <div>
+                    <span class="block text-2xl font-extrabold text-emerald-400" id="res-correct">0</span>
+                    <span class="text-[10px] uppercase font-bold text-slate-400">Richtig</span>
+                </div>
+                <div>
+                    <span class="block text-2xl font-extrabold text-rose-400" id="res-wrong">0</span>
+                    <span class="text-[10px] uppercase font-bold text-slate-400">Falsch</span>
+                </div>
+            </div>
+
+            <div id="res-quote" class="text-sm font-medium text-brand-400 italic bg-brand-950/30 border border-brand-500/20 p-3 rounded-xl">
+                "Übung macht den Meister!"
+            </div>
+
+            <div class="flex flex-col gap-2 pt-2">
+                <button onclick="app.restartSession()" class="w-full bg-brand-600 hover:bg-brand-500 text-white font-bold py-3 rounded-xl shadow-lg transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-rotate-right"></i> Nochmal wiederholen
+                </button>
+                <button onclick="app.navigateTo('dashboard')" class="w-full bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold py-3 rounded-xl transition">
+                    Zurück zur Übersicht
+                </button>
+            </div>
+        </section>
+
+        <section id="view-editor" class="hidden space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-700 pb-4">
+                <div>
+                    <h1 class="text-2xl font-bold text-white">Vokabel- & Lektionsverwaltung</h1>
+                    <p class="text-slate-400 text-sm">Erstelle und bearbeite deine Fächer, Lektionen, Bedeutungen und Notizen.</p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="app.openNewSubjectModal()" class="bg-slate-700 hover:bg-slate-600 text-white text-xs sm:text-sm font-semibold px-3 py-2 rounded-lg transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-plus text-brand-400"></i> Neues Fach
+                    </button>
+                    <button onclick="app.openNewUnitModal()" class="bg-brand-600 hover:bg-brand-500 text-white text-xs sm:text-sm font-semibold px-3 py-2 rounded-lg transition flex items-center gap-1.5 shadow-md">
+                        <i class="fa-solid fa-plus"></i> Neue Lektion
+                    </button>
+                </div>
+            </div>
+
+            <!-- Selector Controls for Editing -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-800 p-4 rounded-xl border border-slate-700">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Fach auswählen</label>
+                    <select id="editor-subject-select" onchange="app.onEditorSubjectChange()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white font-medium focus:outline-none focus:border-brand-500">
+                    </select>
+                </div>
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Lektion / Unit auswählen</label>
+                        <button id="btn-delete-current-unit" onclick="app.confirmDeleteCurrentUnit()" class="text-xs text-rose-400 hover:text-rose-300 font-semibold flex items-center gap-1 hidden">
+                            <i class="fa-solid fa-trash-can text-[10px]"></i> Lektion löschen
+                        </button>
+                    </div>
+                    <select id="editor-unit-select" onchange="app.onEditorUnitChange()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white font-medium focus:outline-none focus:border-brand-500">
+                    </select>
+                </div>
+            </div>
+
+            <!-- Vocabulary Table / List -->
+            <div class="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden shadow-xl">
+                <div class="p-4 bg-slate-800/80 border-b border-slate-700 flex items-center justify-between">
+                    <h3 class="font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-list-check text-brand-500"></i> Vokabelliste
+                    </h3>
+                    <button onclick="app.addNewVocabRow()" class="bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-600/30 text-xs font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1">
+                        <i class="fa-solid fa-plus"></i> Wort hinzufügen
+                    </button>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-slate-300">
+                        <thead class="bg-slate-900/60 text-xs uppercase text-slate-400 border-b border-slate-700">
+                            <tr>
+                                <th class="py-3 px-4 w-1/4">Fremdsprache / Begriff</th>
+                                <th class="py-3 px-4 w-1/3">Bedeutungen / Übersetzungen <span class="text-[10px] text-slate-500 normal-case block">(getrennt durch Komma)</span></th>
+                                <th class="py-3 px-4">Notiz / Grammatikinfo</th>
+                                <th class="py-3 px-4 text-center">Fehler</th>
+                                <th class="py-3 px-4 text-right">Aktionen</th>
+                            </tr>
+                        </thead>
+                        <tbody id="editor-vocab-table-body" class="divide-y divide-slate-700/50">
+                            <!-- Rows injected dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    
+    <!-- Tutorial Modal -->
+    <div id="modal-tutorial" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-2xl w-full shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <div class="flex items-center justify-between border-b border-slate-700 pb-3">
+                <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-graduation-cap text-amber-400"></i> Vokabel Lerner - Anleitung & Hilfe
+                </h3>
+                <button onclick="app.closeModals()" class="text-slate-400 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4 text-sm text-slate-300 leading-relaxed">
+                <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700/60">
+                    <h4 class="font-bold text-white text-base mb-1.5 flex items-center gap-2">
+                        <i class="fa-solid fa-layer-group text-brand-400"></i> 1. Struktur & Verwaltung
+                    </h4>
+                    <p>Organisiere deine Vokabeln in <strong>Fächern</strong> (z. B. Englisch, Latein) und darunter liegenden <strong>Lektionen/Units</strong>. Im Bereich <em>Verwaltung</em> kannst du jederzeit neue Wörter, Fächer und Lektionen anlegen oder löschen.</p>
+                </div>
+
+                <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700/60">
+                    <h4 class="font-bold text-white text-base mb-1.5 flex items-center gap-2">
+                        <i class="fa-solid fa-layer-group text-emerald-400"></i> 2. Synonyme & Notizen
+                    </h4>
+                    <ul class="list-disc list-inside space-y-1 text-xs sm:text-sm text-slate-300">
+                        <li><strong>Mehrere Bedeutungen:</strong> Gib Synonyme getrennt durch ein Komma ein (z. B. <code>Apfel, Der Apfel</code>). Jedes eingegebene Synonym gilt bei der Abfrage als richtig!</li>
+                        <li><strong>Notizen & Tipps:</strong> Nutze das Notizfeld für Grammatik, Eselsbrücken oder Beispielsätze. Während der Abfrage kannst du sie über den Tipp-Button einblenden.</li>
+                    </ul>
+                </div>
+
+                <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700/60">
+                    <h4 class="font-bold text-white text-base mb-1.5 flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-indigo-400"></i> 3. Abfragemodi
+                    </h4>
+                    <ul class="list-disc list-inside space-y-1 text-xs sm:text-sm text-slate-300">
+                        <li><strong>Standard:</strong> Frag alle Vokabeln der gewählten Lektion gleichmäßig ab.</li>
+                        <li><strong>Extra-Fehler-Modus:</strong> Wiederhole gezielt nur falsch gelernte Vokabeln.</li>
+                        <li><strong>Gewichteter Fokus:</strong> Alle Wörter werden abgefragt, aber Vokabeln im Fehler-Pool erscheinen 3-mal häufiger.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="pt-3 border-t border-slate-700 flex flex-col sm:flex-row justify-between items-center gap-3">
+                <button onclick="app.resetDemoData()" class="w-full sm:w-auto text-xs bg-indigo-600/20 text-indigo-300 hover:bg-indigo-600/30 border border-indigo-500/30 px-3.5 py-2 rounded-xl transition font-medium flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-rotate-left"></i> Englisch-Testlektion wiederherstellen
+                </button>
+                <button onclick="app.closeModals()" class="w-full sm:w-auto bg-brand-600 hover:bg-brand-500 text-white font-bold px-6 py-2 rounded-xl transition text-sm">
+                    Verstanden
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Action Modal -->
+    <div id="modal-confirm" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
+            <div class="flex items-center gap-3 text-rose-400">
+                <div class="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-triangle-exclamation text-xl"></i>
+                </div>
+                <h3 class="text-lg font-bold text-white" id="confirm-modal-title">Löschen bestätigen</h3>
+            </div>
+            <p class="text-slate-300 text-sm leading-relaxed" id="confirm-modal-msg">Bist du sicher, dass du dieses Element unwiderruflich löschen möchtest?</p>
+            <div class="flex justify-end gap-2 pt-2">
+                <button onclick="app.closeModals()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-xl text-sm font-semibold">Abbrechen</button>
+                <button id="btn-modal-confirm-action" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-sm font-semibold shadow-lg shadow-rose-600/20">Löschen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Subject Modal -->
+    <div id="modal-subject" class="hidden fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
+            <h3 class="text-lg font-bold text-white">Neues Fach erstellen</h3>
+            <div>
+                <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Fach-Name (z.B. Englisch)</label>
+                <input type="text" id="input-new-subject-name" placeholder="z. B. Spanisch" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white placeholder-slate-500 focus:border-brand-500 focus:outline-none">
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+                <button onclick="app.closeModals()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-sm font-semibold">Abbrechen</button>
+                <button onclick="app.saveNewSubject()" class="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-sm font-semibold">Speichern</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Unit Modal -->
+    <div id="modal-unit" class="hidden fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
+            <h3 class="text-lg font-bold text-white">Neue Lektion / Unit erstellen</h3>
+            <div>
+                <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Zugehöriges Fach</label>
+                <select id="modal-unit-subject-select" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:border-brand-500 focus:outline-none">
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Lektionsname</label>
+                <input type="text" id="input-new-unit-title" placeholder="z. B. Unit 1 - Basics" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white placeholder-slate-500 focus:border-brand-500 focus:outline-none">
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+                <button onclick="app.closeModals()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-sm font-semibold">Abbrechen</button>
+                <button onclick="app.saveNewUnit()" class="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-sm font-semibold">Erstellen</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * Vokabel Lerner - Main Engine
+         */
+        class VocabApp {
+            constructor() {
+                this.data = this.loadData();
+                this.currentView = 'dashboard';
+                
+                // Active Practice Session State
+                this.activeSession = {
+                    subjectId: null,
+                    unitId: null,
+                    mode: 'normal',
+                    caseSensitive: false,
+                    reverseDir: false,
+                    queue: [],
+                    currentIndex: 0,
+                    correctCount: 0,
+                    wrongCount: 0,
+                    currentWord: null,
+                    answered: false,
+                    noteShown: false
+                };
+
+                this.initApp();
+            }
+
+            // LocalStorage Persistence & Initial Setup
+            loadData() {
+                const stored = localStorage.getItem('vocab_lerner_data_v1');
+                if (stored) {
+                    try {
+                        return JSON.parse(stored);
+                    } catch (e) {
+                        console.error('Failed to parse local data.', e);
+                    }
+                }
+                return this.createDemoData();
+            }
+
+            createDemoData() {
+                return {
+                    subjects: [
+                        {
+                            id: 'subj_english_demo',
+                            title: 'Englisch',
+                            icon: 'fa-language',
+                            color: 'from-blue-600 to-indigo-600',
+                            units: [
+                                {
+                                    id: 'unit_demo_1',
+                                    title: 'Unit 1: Basics & School',
+                                    words: [
+                                        {
+                                            id: 'w_1',
+                                            word: 'apple',
+                                            meanings: ['Apfel', 'Der Apfel'],
+                                            note: 'Nomen, Plural: apples',
+                                            errorCount: 0
+                                        },
+                                        {
+                                            id: 'w_2',
+                                            word: 'book',
+                                            meanings: ['Buch', 'Heft'],
+                                            note: 'Nomen, z. B. text book = Schulbuch',
+                                            errorCount: 1
+                                        },
+                                        {
+                                            id: 'w_3',
+                                            word: 'to run',
+                                            meanings: ['rennen', 'laufen'],
+                                            note: 'Unregelmäßiges Verb: run, ran, run',
+                                            errorCount: 0
+                                        },
+                                        {
+                                            id: 'w_4',
+                                            word: 'teacher',
+                                            meanings: ['Lehrer', 'Lehrerin'],
+                                            note: 'Nomen, m./w.',
+                                            errorCount: 0
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                };
+            }
+
+            resetDemoData() {
+                if (confirm("Möchtest du die Englisch-Testlektion zurücksetzen / wiederherstellen?")) {
+                    this.data = this.createDemoData();
+                    this.saveData();
+                    this.closeModals();
+                    this.renderDashboard();
+                    this.updateStats();
+                }
+            }
+
+            saveData() {
+                localStorage.setItem('vocab_lerner_data_v1', JSON.stringify(this.data));
+            }
+
+            initApp() {
+                this.renderDashboard();
+                this.updateStats();
+                
+                // Keyboard Enter support
+                document.addEventListener('keydown', (e) => {
+                    if (this.currentView === 'practice' && this.activeSession.answered) {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            this.nextQuestion();
+                        }
+                    }
+                });
+            }
+
+            parseMeanings(raw) {
+                if (Array.isArray(raw)) return raw;
+                if (!raw) return [];
+                return raw.split(/[,;]/).map(s => s.trim()).filter(s => s.length > 0);
+            }
+
+            navigateTo(viewId) {
+                this.currentView = viewId;
+                ['dashboard', 'config', 'practice', 'results', 'editor'].forEach(id => {
+                    const el = document.getElementById(`view-${id}`);
+                    if (el) el.classList.toggle('hidden', id !== viewId);
+                });
+
+                const dashBtn = document.getElementById('nav-dash-btn');
+                const editorBtn = document.getElementById('nav-editor-btn');
+                
+                if (dashBtn && editorBtn) {
+                    if (viewId === 'dashboard') {
+                        dashBtn.className = "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition text-white bg-slate-700/60";
+                        editorBtn.className = "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition text-slate-300 hover:text-white hover:bg-slate-800";
+                    } else if (viewId === 'editor') {
+                        editorBtn.className = "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition text-white bg-slate-700/60";
+                        dashBtn.className = "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition text-slate-300 hover:text-white hover:bg-slate-800";
+                    }
+                }
+
+                if (viewId === 'dashboard') {
+                    this.renderDashboard();
+                    this.updateStats();
+                } else if (viewId === 'editor') {
+                    this.renderEditor();
+                }
+            }
+
+            updateStats() {
+                let total = 0;
+                let errors = 0;
+                this.data.subjects.forEach(s => {
+                    s.units.forEach(u => {
+                        u.words.forEach(w => {
+                            total++;
+                            if (w.errorCount > 0) errors++;
+                        });
+                    });
+                });
+                document.getElementById('stat-total-words').textContent = total;
+                document.getElementById('stat-error-words').textContent = errors;
+            }
+
+            renderDashboard() {
+                const container = document.getElementById('subjects-container');
+                container.innerHTML = '';
+
+                if (this.data.subjects.length === 0) {
+                    container.innerHTML = `
+                        <div class="col-span-full text-center py-16 px-4 border-2 border-dashed border-slate-700/80 rounded-2xl bg-slate-800/40">
+                            <div class="w-16 h-16 rounded-2xl bg-brand-500/10 text-brand-400 flex items-center justify-center mx-auto mb-4 border border-brand-500/20">
+                                <i class="fa-solid fa-book-open text-2xl"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-white mb-1">Keine Fächer angelegt</h3>
+                            <p class="text-slate-400 text-sm max-w-sm mx-auto mb-5">Erstelle ein neues Fach oder lade die Englisch-Testlektion.</p>
+                            <div class="flex justify-center gap-3">
+                                <button onclick="app.openNewSubjectModal()" class="bg-brand-600 hover:bg-brand-500 text-white text-sm font-bold px-4 py-2.5 rounded-xl transition shadow-lg flex items-center gap-2">
+                                    <i class="fa-solid fa-plus"></i> Erstes Fach erstellen
+                                </button>
+                                <button onclick="app.resetDemoData()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm font-bold px-4 py-2.5 rounded-xl transition flex items-center gap-2">
+                                    <i class="fa-solid fa-rotate-left"></i> Demo-Lektion
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                this.data.subjects.forEach(subj => {
+                    const subjCard = document.createElement('div');
+                    subjCard.className = "bg-slate-800/90 border border-slate-700/80 rounded-2xl overflow-hidden shadow-lg flex flex-col justify-between";
+
+                    let totalWords = 0;
+                    let errorWords = 0;
+                    
+                    let unitsHtml = subj.units.map(u => {
+                        const uErrors = u.words.filter(w => w.errorCount > 0).length;
+                        totalWords += u.words.length;
+                        errorWords += uErrors;
+
+                        return `
+                            <div class="flex items-center justify-between p-3 rounded-xl bg-slate-900/40 hover:bg-slate-900/80 border border-slate-700/40 transition group">
+                                <div class="truncate mr-2">
+                                    <span class="font-semibold text-slate-200 text-sm group-hover:text-brand-400 transition">${u.title}</span>
+                                    <span class="block text-xs text-slate-400">${u.words.length} Vokabeln ${uErrors > 0 ? `<span class="text-rose-400 font-medium">• ${uErrors} Fehler</span>` : ''}</span>
+                                </div>
+                                <button onclick="app.openPracticeConfig('${subj.id}', '${u.id}')" ${u.words.length === 0 ? 'disabled class="opacity-40 cursor-not-allowed bg-slate-700 text-slate-400 text-xs font-bold px-3 py-1.5 rounded-lg"' : 'class="bg-brand-600/20 text-brand-400 border border-brand-500/30 hover:bg-brand-600 hover:text-white text-xs font-bold px-3 py-1.5 rounded-lg transition shrink-0 flex items-center gap-1"'}>
+                                    <i class="fa-solid fa-play text-[10px]"></i> Üben
+                                </button>
+                            </div>
+                        `;
+                    }).join('');
+
+                    subjCard.innerHTML = `
+                        <div>
+                            <!-- Header -->
+                            <div class="p-5 bg-gradient-to-r ${subj.color || 'from-brand-600 to-indigo-600'} flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-lg bg-black/20 flex items-center justify-center text-white">
+                                        <i class="fa-solid ${subj.icon || 'fa-book'} text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-bold text-white text-lg leading-tight">${subj.title}</h3>
+                                        <span class="text-xs text-white/80 font-medium">${subj.units.length} Lektionen</span>
+                                    </div>
+                                </div>
+                                <button onclick="app.confirmDeleteSubject('${subj.id}', '${subj.title.replace(/'/g, "\\'")}')" class="text-white/60 hover:text-rose-300 p-2 transition" title="Fach löschen">
+                                    <i class="fa-solid fa-trash-can text-sm"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- Units List -->
+                            <div class="p-4 space-y-2.5 max-h-64 overflow-y-auto custom-scrollbar">
+                                ${unitsHtml || '<p class="text-xs text-slate-500 italic py-2 text-center">Noch keine Lektionen vorhanden</p>'}
+                            </div>
+                        </div>
+
+                        <!-- Footer Actions -->
+                        <div class="p-3 bg-slate-900/50 border-t border-slate-700/60 flex justify-between items-center text-xs">
+                            <button onclick="app.openNewUnitModal('${subj.id}')" class="text-slate-400 hover:text-white font-medium flex items-center gap-1">
+                                <i class="fa-solid fa-plus text-brand-400"></i> Lektion hinzufügen
+                            </button>
+                            ${errorWords > 0 ? `
+                                <button onclick="app.openPracticeConfig('${subj.id}', 'all_errors')" class="text-rose-400 hover:text-rose-300 font-bold flex items-center gap-1">
+                                    <i class="fa-solid fa-fire text-xs"></i> ${errorWords} Fehler üben
+                                </button>
+                            ` : ''}
+                        </div>
+                    `;
+
+                    container.appendChild(subjCard);
+                });
+            }
+
+            openPracticeConfig(subjectId, unitId) {
+                const subject = this.data.subjects.find(s => s.id === subjectId);
+                if (!subject) return;
+
+                this.activeSession.subjectId = subjectId;
+                this.activeSession.unitId = unitId;
+
+                const configSubjTag = document.getElementById('config-subject-tag');
+                const configUnitTitle = document.getElementById('config-unit-title');
+                const errorsOption = document.getElementById('mode-option-errors');
+
+                configSubjTag.textContent = subject.title;
+
+                let errorWordsCount = 0;
+
+                if (unitId === 'all_errors') {
+                    configUnitTitle.textContent = "Alle Fehler des Fachs";
+                    subject.units.forEach(u => {
+                        errorWordsCount += u.words.filter(w => w.errorCount > 0).length;
+                    });
+                } else {
+                    const unit = subject.units.find(u => u.id === unitId);
+                    if (unit) {
+                        configUnitTitle.textContent = unit.title;
+                        errorWordsCount = unit.words.filter(w => w.errorCount > 0).length;
+                    }
+                }
+
+                const radioError = errorsOption.querySelector('input');
+                if (errorWordsCount === 0) {
+                    errorsOption.classList.add('opacity-50', 'pointer-events-none');
+                    radioError.disabled = true;
+                    document.querySelector('input[name="practice-mode"][value="normal"]').checked = true;
+                } else {
+                    errorsOption.classList.remove('opacity-50', 'pointer-events-none');
+                    radioError.disabled = false;
+                }
+
+                this.navigateTo('config');
+            }
+
+            startPracticeSession() {
+                const mode = document.querySelector('input[name="practice-mode"]:checked').value;
+                const caseSensitive = document.getElementById('setting-case-sensitive').checked;
+                const reverseDir = document.getElementById('setting-reverse-dir').checked;
+
+                const subject = this.data.subjects.find(s => s.id === this.activeSession.subjectId);
+                let pool = [];
+
+                if (this.activeSession.unitId === 'all_errors') {
+                    subject.units.forEach(u => {
+                        u.words.filter(w => w.errorCount > 0).forEach(w => pool.push({ ...w, unitId: u.id }));
+                    });
+                } else {
+                    const unit = subject.units.find(u => u.id === this.activeSession.unitId);
+                    if (unit) {
+                        unit.words.forEach(w => pool.push({ ...w, unitId: unit.id }));
+                    }
+                }
+
+                if (pool.length === 0) {
+                    alert("Keine Vokabeln zum Üben in dieser Auswahl vorhanden.");
+                    return;
+                }
+
+                let queue = [];
+                if (mode === 'errors_only') {
+                    queue = pool.filter(w => w.errorCount > 0);
+                } else if (mode === 'weighted') {
+                    pool.forEach(w => {
+                        const weight = w.errorCount > 0 ? 3 : 1;
+                        for (let i = 0; i < weight; i++) {
+                            queue.push(w);
+                        }
+                    });
+                } else {
+                    queue = [...pool];
+                }
+
+                queue = queue.sort(() => Math.random() - 0.5);
+
+                this.activeSession.mode = mode;
+                this.activeSession.caseSensitive = caseSensitive;
+                this.activeSession.reverseDir = reverseDir;
+                this.activeSession.queue = queue;
+                this.activeSession.currentIndex = 0;
+                this.activeSession.correctCount = 0;
+                this.activeSession.wrongCount = 0;
+                this.activeSession.answered = false;
+
+                const modeBadge = document.getElementById('practice-mode-badge');
+                if (mode === 'errors_only') {
+                    modeBadge.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-rose-400"></i> Extra-Fehler-Modus`;
+                } else if (mode === 'weighted') {
+                    modeBadge.innerHTML = `<i class="fa-solid fa-bullseye text-amber-400"></i> Fokus-Gewichtung`;
+                } else {
+                    modeBadge.innerHTML = `<i class="fa-solid fa-rotate text-blue-400"></i> Standard-Modus`;
+                }
+
+                this.navigateTo('practice');
+                this.renderCurrentQuestion();
+            }
+
+            renderCurrentQuestion() {
+                const session = this.activeSession;
+                if (session.currentIndex >= session.queue.length) {
+                    this.finishPracticeSession();
+                    return;
+                }
+
+                session.answered = false;
+                session.noteShown = false;
+
+                const wordObj = session.queue[session.currentIndex];
+                session.currentWord = wordObj;
+
+                const total = session.queue.length;
+                const current = session.currentIndex + 1;
+                document.getElementById('practice-progress-text').textContent = `${current}/${total}`;
+                document.getElementById('practice-progress-bar').style.width = `${((current - 1) / total) * 100}%`;
+                
+                document.getElementById('score-correct').textContent = session.correctCount;
+                document.getElementById('score-wrong').textContent = session.wrongCount;
+
+                const promptText = session.reverseDir ? wordObj.meanings.join(' / ') : wordObj.word;
+                const promptLang = session.reverseDir ? 'Gesuchte Vokabel (Fremdsprache):' : 'Gesuchte Bedeutung (Deutsch):';
+                
+                document.getElementById('practice-prompt-word').textContent = promptText || "(Unbenannt)";
+                document.getElementById('practice-lang-prompt').textContent = promptLang;
+
+                const noteBtn = document.getElementById('btn-toggle-note');
+                const noteBox = document.getElementById('practice-note-box');
+                document.getElementById('btn-toggle-note-text').textContent = "💡 Tipp / Notiz anzeigen";
+                
+                if (wordObj.note && wordObj.note.trim().length > 0) {
+                    noteBtn.classList.remove('hidden');
+                    noteBtn.classList.add('inline-flex');
+                    document.getElementById('practice-note-content').textContent = wordObj.note;
+                } else {
+                    noteBtn.classList.add('hidden');
+                    noteBtn.classList.remove('inline-flex');
+                }
+                noteBox.classList.add('hidden');
+
+                const input = document.getElementById('practice-input');
+                input.value = '';
+                input.disabled = false;
+                input.focus();
+
+                const feedback = document.getElementById('practice-feedback');
+                feedback.className = "hidden rounded-xl p-4 text-sm font-medium transition-all text-left space-y-2";
+                document.getElementById('feedback-meanings-box').classList.add('hidden');
+
+                const submitBtn = document.getElementById('btn-submit');
+                submitBtn.innerHTML = `<span>Prüfen</span> <i class="fa-solid fa-arrow-right text-xs"></i>`;
+                submitBtn.className = "flex-1 bg-brand-600 hover:bg-brand-500 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-brand-600/30 transition text-sm flex items-center justify-center gap-2";
+
+                document.getElementById('btn-reveal').classList.remove('hidden');
+            }
+
+            togglePracticeNote() {
+                const noteBox = document.getElementById('practice-note-box');
+                const noteText = document.getElementById('btn-toggle-note-text');
+                this.activeSession.noteShown = !this.activeSession.noteShown;
+
+                if (this.activeSession.noteShown) {
+                    noteBox.classList.remove('hidden');
+                    noteText.textContent = "Notiz verbergen";
+                } else {
+                    noteBox.classList.add('hidden');
+                    noteText.textContent = "💡 Tipp / Notiz anzeigen";
+                }
+            }
+
+            handleAnswerSubmit(e) {
+                e.preventDefault();
+                const session = this.activeSession;
+
+                if (session.answered) {
+                    this.nextQuestion();
+                    return;
+                }
+
+                const inputEl = document.getElementById('practice-input');
+                const userAnswer = inputEl.value.trim();
+
+                if (!userAnswer) return;
+
+                let acceptedAnswers = [];
+                if (session.reverseDir) {
+                    acceptedAnswers = [(session.currentWord.word || '').trim()];
+                } else {
+                    acceptedAnswers = (session.currentWord.meanings || []).map(m => m.trim());
+                }
+
+                let isCorrect = false;
+                if (session.caseSensitive) {
+                    isCorrect = acceptedAnswers.some(ans => ans === userAnswer);
+                } else {
+                    const lowerUser = userAnswer.toLowerCase();
+                    isCorrect = acceptedAnswers.some(ans => ans.toLowerCase() === lowerUser);
+                }
+
+                this.evaluateResult(isCorrect, acceptedAnswers);
+            }
+
+            revealAnswer() {
+                if (this.activeSession.answered) return;
+                const session = this.activeSession;
+                let acceptedAnswers = session.reverseDir ? [(session.currentWord.word || '').trim()] : (session.currentWord.meanings || []).map(m => m.trim());
+                this.evaluateResult(false, acceptedAnswers, true);
+            }
+
+            evaluateResult(isCorrect, acceptedAnswers, wasRevealed = false) {
+                const session = this.activeSession;
+                session.answered = true;
+
+                const inputEl = document.getElementById('practice-input');
+                const feedback = document.getElementById('practice-feedback');
+                const feedbackIcon = document.getElementById('feedback-icon');
+                const feedbackTitle = document.getElementById('feedback-title');
+                const feedbackDetail = document.getElementById('feedback-detail');
+                const cardContainer = document.getElementById('card-container');
+                const noteBox = document.getElementById('practice-note-box');
+
+                inputEl.disabled = true;
+                document.getElementById('btn-reveal').classList.add('hidden');
+
+                if (session.currentWord.note && session.currentWord.note.trim().length > 0) {
+                    noteBox.classList.remove('hidden');
+                    document.getElementById('btn-toggle-note-text').textContent = "Notiz verbergen";
+                    session.noteShown = true;
+                }
+
+                const submitBtn = document.getElementById('btn-submit');
+                submitBtn.innerHTML = `<span>Weiter</span> <i class="fa-solid fa-arrow-right text-xs"></i>`;
+
+                this.updateWordErrorState(session.subjectId, session.currentWord.unitId, session.currentWord.id, isCorrect);
+
+                const meaningsBox = document.getElementById('feedback-meanings-box');
+                const meaningsTags = document.getElementById('feedback-meanings-tags');
+                meaningsTags.innerHTML = '';
+                
+                let allMeanings = session.reverseDir ? [session.currentWord.word] : session.currentWord.meanings;
+                allMeanings.forEach(m => {
+                    if (m && m.trim().length > 0) {
+                        const tag = document.createElement('span');
+                        tag.className = "px-2.5 py-1 rounded-md text-xs font-semibold bg-slate-900 border border-slate-700 text-slate-200";
+                        tag.textContent = m;
+                        meaningsTags.appendChild(tag);
+                    }
+                });
+                meaningsBox.classList.remove('hidden');
+
+                if (isCorrect) {
+                    session.correctCount++;
+                    feedback.className = "rounded-xl p-4 text-sm font-medium transition-all text-left space-y-2 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 block";
+                    feedbackIcon.className = "fa-solid fa-circle-check text-emerald-400 text-xl mt-0.5";
+                    feedbackTitle.textContent = "Richtig! Hervorragend.";
+                    feedbackDetail.textContent = `Gültige Übersetzung: "${acceptedAnswers.join(' / ')}"`;
+                    cardContainer.classList.add('pulse-success');
+                    setTimeout(() => cardContainer.classList.remove('pulse-success'), 400);
+                } else {
+                    session.wrongCount++;
+                    feedback.className = "rounded-xl p-4 text-sm font-medium transition-all text-left space-y-2 bg-rose-500/10 border border-rose-500/30 text-rose-400 block";
+                    feedbackIcon.className = "fa-solid fa-circle-xmark text-rose-400 text-xl mt-0.5";
+                    feedbackTitle.textContent = wasRevealed ? "Aufgelöst!" : "Hoppla, das war leider falsch!";
+                    feedbackDetail.textContent = `Gesucht war: "${acceptedAnswers.join(' / ')}"`;
+                    cardContainer.classList.add('shake');
+                    setTimeout(() => cardContainer.classList.remove('shake'), 400);
+                }
+            }
+
+            updateWordErrorState(subjectId, unitId, wordId, isCorrect) {
+                const subject = this.data.subjects.find(s => s.id === subjectId);
+                if (!subject) return;
+                const unit = subject.units.find(u => u.id === unitId);
+                if (!unit) return;
+                const word = unit.words.find(w => w.id === wordId);
+                if (!word) return;
+
+                if (isCorrect) {
+                    if (word.errorCount > 0) word.errorCount--;
+                } else {
+                    word.errorCount++;
+                }
+
+                this.saveData();
+            }
+
+            nextQuestion() {
+                this.activeSession.currentIndex++;
+                this.renderCurrentQuestion();
+            }
+
+            finishPracticeSession() {
+                const session = this.activeSession;
+                document.getElementById('res-total').textContent = session.queue.length;
+                document.getElementById('res-correct').textContent = session.correctCount;
+                document.getElementById('res-wrong').textContent = session.wrongCount;
+
+                const ratio = session.correctCount / (session.queue.length || 1);
+                const quoteEl = document.getElementById('res-quote');
+                if (ratio === 1) {
+                    quoteEl.textContent = "🏆 Perfekt! Alle Vokabeln im ersten Anlauf gemeistert!";
+                } else if (ratio >= 0.7) {
+                    quoteEl.textContent = "👍 Sehr gut gemacht! Noch ein bisschen Übung und du sitzt sattelfest.";
+                } else {
+                    quoteEl.textContent = "💪 Nicht aufgeben! Wiederhole die Fehler im Extra-Fehler-Modus.";
+                }
+
+                this.navigateTo('results');
+            }
+
+            quitPracticeSession() {
+                if (confirm("Möchtest du die aktuelle Abfrage wirklich abbrechen?")) {
+                    this.navigateTo('dashboard');
+                }
+            }
+
+            restartSession() {
+                this.startPracticeSession();
+            }
+
+            renderEditor() {
+                const subjectSelect = document.getElementById('editor-subject-select');
+                subjectSelect.innerHTML = '';
+
+                if (this.data.subjects.length === 0) {
+                    subjectSelect.innerHTML = '<option value="">Keine Fächer vorhanden</option>';
+                    document.getElementById('editor-unit-select').innerHTML = '<option value="">-</option>';
+                    document.getElementById('editor-vocab-table-body').innerHTML = '';
+                    document.getElementById('btn-delete-current-unit').classList.add('hidden');
+                    return;
+                }
+
+                this.data.subjects.forEach(s => {
+                    const opt = document.createElement('option');
+                    opt.value = s.id;
+                    opt.textContent = s.title;
+                    subjectSelect.appendChild(opt);
+                });
+
+                this.onEditorSubjectChange();
+            }
+
+            onEditorSubjectChange() {
+                const subjectId = document.getElementById('editor-subject-select').value;
+                const unitSelect = document.getElementById('editor-unit-select');
+                unitSelect.innerHTML = '';
+
+                const subject = this.data.subjects.find(s => s.id === subjectId);
+                if (!subject || subject.units.length === 0) {
+                    unitSelect.innerHTML = '<option value="">Keine Lektionen vorhanden</option>';
+                    document.getElementById('btn-delete-current-unit').classList.add('hidden');
+                    this.renderEditorTable([]);
+                    return;
+                }
+
+                subject.units.forEach(u => {
+                    const opt = document.createElement('option');
+                    opt.value = u.id;
+                    opt.textContent = u.title;
+                    unitSelect.appendChild(opt);
+                });
+
+                document.getElementById('btn-delete-current-unit').classList.remove('hidden');
+                this.onEditorUnitChange();
+            }
+
+            onEditorUnitChange() {
+                const subjectId = document.getElementById('editor-subject-select').value;
+                const unitId = document.getElementById('editor-unit-select').value;
+
+                const subject = this.data.subjects.find(s => s.id === subjectId);
+                if (!subject) return;
+                const unit = subject.units.find(u => u.id === unitId);
+
+                if (!unit) {
+                    document.getElementById('btn-delete-current-unit').classList.add('hidden');
+                    this.renderEditorTable([]);
+                    return;
+                }
+
+                document.getElementById('btn-delete-current-unit').classList.remove('hidden');
+                this.renderEditorTable(unit.words);
+            }
+
+            renderEditorTable(words) {
+                const tbody = document.getElementById('editor-vocab-table-body');
+                tbody.innerHTML = '';
+
+                if (words.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="5" class="text-center py-8 text-slate-500 italic">
+                                Keine Vokabeln in dieser Lektion. Klicke oben auf "+ Wort hinzufügen".
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                words.forEach(w => {
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-slate-700/30 transition";
+
+                    const meaningsString = (w.meanings || []).join(', ');
+
+                    tr.innerHTML = `
+                        <td class="py-3 px-4">
+                            <input type="text" value="${w.word || ''}" placeholder="z. B. apple" onchange="app.updateVocabWord('${w.id}', 'word', this.value)" 
+                                class="bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-white placeholder-slate-500 w-full focus:outline-none focus:border-brand-500 text-sm">
+                        </td>
+                        <td class="py-3 px-4">
+                            <input type="text" value="${meaningsString}" placeholder="z. B. Apfel, Der Apfel" onchange="app.updateVocabWord('${w.id}', 'meanings', this.value)" 
+                                class="bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-white placeholder-slate-500 w-full focus:outline-none focus:border-brand-500 text-sm">
+                        </td>
+                        <td class="py-3 px-4">
+                            <input type="text" value="${w.note || ''}" placeholder="Optionale Notiz / Grammatik" onchange="app.updateVocabWord('${w.id}', 'note', this.value)" 
+                                class="bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-slate-300 placeholder-slate-500 w-full focus:outline-none focus:border-brand-500 text-xs">
+                        </td>
+                        <td class="py-3 px-4 text-center">
+                            ${w.errorCount > 0 ? 
+                                `<span class="px-2 py-0.5 rounded text-xs font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30">${w.errorCount}</span>` : 
+                                `<span class="px-2 py-0.5 rounded text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">0</span>`}
+                        </td>
+                        <td class="py-3 px-4 text-right">
+                            <button onclick="app.confirmDeleteWord('${w.id}', '${(w.word || 'Unbenannt').replace(/'/g, "\\'")}')" class="text-slate-400 hover:text-rose-400 p-1.5 transition" title="Löschen">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            addNewVocabRow() {
+                const subjectId = document.getElementById('editor-subject-select').value;
+                const unitId = document.getElementById('editor-unit-select').value;
+
+                const subject = this.data.subjects.find(s => s.id === subjectId);
+                if (!subject) return;
+                const unit = subject.units.find(u => u.id === unitId);
+                if (!unit) {
+                    alert("Bitte erstelle zuerst ein Fach und eine Lektion.");
+                    return;
+                }
+
+                const newWord = {
+                    id: 'w_' + Date.now(),
+                    word: '',
+                    meanings: [],
+                    note: '',
+                    errorCount: 0
+                };
+
+                unit.words.push(newWord);
+                this.saveData();
+                this.renderEditorTable(unit.words);
+
+                setTimeout(() => {
+                    const tbody = document.getElementById('editor-vocab-table-body');
+                    const lastRowInput = tbody.querySelector('tr:last-child input');
+                    if (lastRowInput) lastRowInput.focus();
+                }, 50);
+            }
+
+            updateVocabWord(wordId, field, value) {
+                const subjectId = document.getElementById('editor-subject-select').value;
+                const unitId = document.getElementById('editor-unit-select').value;
+                const subject = this.data.subjects.find(s => s.id === subjectId);
+                if (!subject) return;
+                const unit = subject.units.find(u => u.id === unitId);
+                if (!unit) return;
+
+                const word = unit.words.find(w => w.id === wordId);
+                if (word) {
+                    if (field === 'meanings') {
+                        word.meanings = this.parseMeanings(value);
+                    } else {
+                        word[field] = value.trim();
+                    }
+                    this.saveData();
+                }
+            }
+
+            confirmDeleteSubject(subjectId, subjectTitle) {
+                this.openConfirmModal(
+                    "Fach löschen",
+                    `Möchtest du das Fach "${subjectTitle}" inklusive aller Lektionen und Vokabeln wirklich löschen?`,
+                    () => {
+                        this.data.subjects = this.data.subjects.filter(s => s.id !== subjectId);
+                        this.saveData();
+                        this.renderDashboard();
+                        this.updateStats();
+                        this.closeModals();
+                    }
+                );
+            }
+
+            confirmDeleteCurrentUnit() {
+                const subjectId = document.getElementById('editor-subject-select').value;
+                const unitId = document.getElementById('editor-unit-select').value;
+                const subject = this.data.subjects.find(s => s.id === subjectId);
+                if (!subject) return;
+                const unit = subject.units.find(u => u.id === unitId);
+                if (!unit) return;
+
+                this.openConfirmModal(
+                    "Lektion löschen",
+                    `Möchtest du die Lektion "${unit.title}" mit all ihren Vokabeln wirklich löschen?`,
+                    () => {
+                        subject.units = subject.units.filter(u => u.id !== unitId);
+                        this.saveData();
+                        this.renderEditor();
+                        this.updateStats();
+                        this.closeModals();
+                    }
+                );
+            }
+
+            confirmDeleteWord(wordId, wordText) {
+                this.openConfirmModal(
+                    "Vokabel löschen",
+                    `Möchtest du die Vokabel "${wordText}" wirklich löschen?`,
+                    () => {
+                        const subjectId = document.getElementById('editor-subject-select').value;
+                        const unitId = document.getElementById('editor-unit-select').value;
+                        const subject = this.data.subjects.find(s => s.id === subjectId);
+                        if (!subject) return;
+                        const unit = subject.units.find(u => u.id === unitId);
+                        if (!unit) return;
+
+                        unit.words = unit.words.filter(w => w.id !== wordId);
+                        this.saveData();
+                        this.renderEditorTable(unit.words);
+                        this.updateStats();
+                        this.closeModals();
+                    }
+                );
+            }
+
+            openConfirmModal(title, msg, onConfirm) {
+                document.getElementById('confirm-modal-title').textContent = title;
+                document.getElementById('confirm-modal-msg').textContent = msg;
+                const confirmBtn = document.getElementById('btn-modal-confirm-action');
+                
+                const newBtn = confirmBtn.cloneNode(true);
+                confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
+                
+                newBtn.addEventListener('click', onConfirm);
+                document.getElementById('modal-confirm').classList.remove('hidden');
+            }
+
+            openNewSubjectModal() {
+                document.getElementById('input-new-subject-name').value = '';
+                document.getElementById('modal-subject').classList.remove('hidden');
+                setTimeout(() => document.getElementById('input-new-subject-name').focus(), 100);
+            }
+
+            saveNewSubject() {
+                const name = document.getElementById('input-new-subject-name').value.trim();
+                if (!name) return;
+
+                const colors = [
+                    'from-blue-600 to-cyan-500',
+                    'from-purple-600 to-pink-500',
+                    'from-emerald-600 to-teal-500',
+                    'from-amber-600 to-orange-500'
+                ];
+
+                const newSubject = {
+                    id: 'subj_' + Date.now(),
+                    title: name,
+                    icon: 'fa-book-open',
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    units: []
+                };
+
+                this.data.subjects.push(newSubject);
+                this.saveData();
+                this.closeModals();
+                this.renderDashboard();
+                this.updateStats();
+            }
+
+            openNewUnitModal(targetSubjectId = null) {
+                if (this.data.subjects.length === 0) {
+                    alert("Bitte lege zuerst ein Fach an.");
+                    this.openNewSubjectModal();
+                    return;
+                }
+
+                const select = document.getElementById('modal-unit-subject-select');
+                select.innerHTML = '';
+
+                this.data.subjects.forEach(s => {
+                    const opt = document.createElement('option');
+                    opt.value = s.id;
+                    opt.textContent = s.title;
+                    if (targetSubjectId && s.id === targetSubjectId) opt.selected = true;
+                    select.appendChild(opt);
+                });
+
+                document.getElementById('input-new-unit-title').value = '';
+                document.getElementById('modal-unit').classList.remove('hidden');
+                setTimeout(() => document.getElementById('input-new-unit-title').focus(), 100);
+            }
+
+            saveNewUnit() {
+                const subjectId = document.getElementById('modal-unit-subject-select').value;
+                const title = document.getElementById('input-new-unit-title').value.trim();
+
+                if (!subjectId || !title) return;
+
+                const subject = this.data.subjects.find(s => s.id === subjectId);
+                if (subject) {
+                    subject.units.push({
+                        id: 'unit_' + Date.now(),
+                        title: title,
+                        words: []
+                    });
+                    this.saveData();
+                    this.closeModals();
+                    if (this.currentView === 'editor') {
+                        this.renderEditor();
+                    } else {
+                        this.renderDashboard();
+                    }
+                }
+            }
+
+            openTutorialModal() {
+                document.getElementById('modal-tutorial').classList.remove('hidden');
+            }
+
+            closeModals() {
+                document.getElementById('modal-subject').classList.add('hidden');
+                document.getElementById('modal-unit').classList.add('hidden');
+                document.getElementById('modal-confirm').classList.add('hidden');
+                document.getElementById('modal-tutorial').classList.add('hidden');
+            }
+        }
+
+        // Global initialization
+        let app;
+        window.addEventListener('DOMContentLoaded', () => {
+            app = new VocabApp();
+        });
+    </script>
+</body>
+</html>
